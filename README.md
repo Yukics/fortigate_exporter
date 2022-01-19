@@ -1,3 +1,8 @@
+|Server|Ruta|Descripción|
+|:-:|:-:|:-:|
+|Yavin4|/docker/monitoring/forti-exporter|Exporter de prometheus para firewalls de Fortinet|
+
+
 # fortigate_exporter
 
 ![Go](https://github.com/bluecmd/fortigate_exporter/workflows/Go/badge.svg)
