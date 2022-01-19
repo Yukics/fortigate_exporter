@@ -5,24 +5,11 @@
 
 # fortigate_exporter
 
-![Go](https://github.com/bluecmd/fortigate_exporter/workflows/Go/badge.svg)
-![Docker](https://github.com/bluecmd/fortigate_exporter/workflows/Docker/badge.svg)
-[![Docker Repository on Quay](https://quay.io/repository/bluecmd/fortigate_exporter/status "Docker Repository on Quay")](https://quay.io/repository/bluecmd/fortigate_exporter)
-[![Matrix](https://img.shields.io/matrix/fortigate_exporter:matrix.org)](https://matrix.to/#/#fortigate_exporter:matrix.org)
-
-Prometheus exporter for FortiGate® firewalls.
-
-**NOTE:** This is not an official Fortinet product, it is developed fully independently by professionals and hobbyists alike.
-
   * [Supported Metrics](#supported-metrics)
   * [Usage](#usage)
     + [Available CLI parameters](#available-cli-parameters)
     + [Fortigate Configuration](#fortigate-configuration)
     + [Prometheus Configuration](#prometheus-configuration)
-    + [Docker](#docker)
-      - [docker-compose](#docker-compose)
-  * [Known Issues](#known-issues)
-  * [Missing Metrics?](#missing-metrics)
 
 ## Supported Metrics
 
@@ -376,67 +363,25 @@ end
 An example configuration for Prometheus looks something like this:
 
 ```yaml
-  - job_name: 'fortigate_exporter'
-    metrics_path: /probe
+  - job_name: fortigate
+    metrics_path: "/probe"
+    scheme: http
+    params:
+      target: ["https://192.168.89.1"]
     static_configs:
       - targets:
-        - https://my-fortigate
-        - https://my-other-fortigate:8443
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
-        target_label: instance
-        # Drop the https:// and port (if specified) for the 'instance=' label
-        regex: '(?:.+)(?::\/\/)([^:]*).*'
-      - target_label: __address__
-        replacement: '[::1]:9710'
+        - forti-exporter_exporter_1:9710
+        labels:
+          instance: fortigate
+
+  - job_name: fortigateIsla
+    metrics_path: "/probe"
+    scheme: http
+    params:
+      target: ["https://192.168.89.191"]
+    static_configs:
+      - targets:
+        - forti-exporter_exporter_1:9710
+        labels:
+          instance: fortigateIsla
 ```
-
-### Docker
-
-You can either use the automatic builds on
-[quay.io](https://quay.io/repository/bluecmd/fortigate_exporter) or build yourself
-like this:
-
-```bash
-docker build -t fortigate_exporter .
-docker run -d -p 9710:9710 -v /path/to/fortigate-key.yaml:/config/fortigate-key.yaml fortigate_exporter
-```
-
-#### docker-compose
-
-```yaml
-prometheus_fortigate_exporter:
-  build: ./
-  ports:
-    - 9710:9710
-  volumes:
-    - /path/to/fortigate-key.yaml:/config/fortigate-key.yaml
-  # Applying multiple parameters
-  command: ["-auth-file", "/config/fortigate-key.yaml", "-insecure"]
-  restart: unless-stopped
-```
-
-## Known Issues
-
-This is a collection of known issues that for some reason cannot be fixed,
-but might be possible to work around.
-
- * Probing causing [httpsd memory leak in FortiOS 6.2.x](https://github.com/bluecmd/fortigate_exporter/issues/62) ([Workaround](https://github.com/bluecmd/fortigate_exporter/issues/62#issuecomment-798602061))
-
-## Missing Metrics?
-
-Please [file an issue](https://github.com/bluecmd/fortigate_exporter/issues/new) describing what metrics you'd like to see.
-Include as much details as possible please, e.g. how the perfect Prometheus metric would look for your use-case.
-
-An alternative to using this exporter is to use generic SNMP polling, e.g. using a Prometheus SNMP exporter
-([official](https://github.com/prometheus/snmp_exporter), [alternative](https://github.com/dhtech/snmpexporter)).
-Note that there are limitations (e.g. [1](https://kb.fortinet.com/kb/documentLink.do?externalID=FD47703))
-in what FortiGate supports querying via SNMP.
-
-## Legal
-
-Fortinet®, and FortiGate® are registered trademarks of Fortinet, Inc.
-
-This is not an official Fortinet product.
