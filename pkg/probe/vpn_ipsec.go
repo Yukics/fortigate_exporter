@@ -70,12 +70,13 @@ func probeVPNIPSec(c http.FortiHTTP, meta *TargetMetadata) ([]prometheus.Metric,
 	}
 
 	m := []prometheus.Metric{}
-	currentTime := time.Now()
+	
 	for _, v := range res {
 
 		for _, i := range v.Results {
 
 			if i.Wizard == "dialup-forticlient" && i.Auth != "" {
+				currentTime := time.Now()
 				m = append(m, prometheus.MustNewConstMetric(user_received, prometheus.CounterValue, i.Incoming, v.VDOM, i.Name, i.Auth, i.Gw, strconv.Itoa(i.Create), currentTime.Format("2006-01-02") ))
 				m = append(m, prometheus.MustNewConstMetric(user_transmitted, prometheus.CounterValue, i.Outgoing, v.VDOM, i.Name, i.Auth, i.Gw, strconv.Itoa(i.Create), currentTime.Format("2006-01-02")))
 			}
