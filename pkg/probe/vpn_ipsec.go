@@ -3,6 +3,7 @@ package probe
 import (
 	"log"
 	"strconv"
+	"time"
 
 	"github.com/bluecmd/fortigate_exporter/pkg/http"
 	"github.com/prometheus/client_golang/prometheus"
@@ -28,12 +29,12 @@ func probeVPNIPSec(c http.FortiHTTP, meta *TargetMetadata) ([]prometheus.Metric,
 		user_received = prometheus.NewDesc(
 			"fortigate_ipsec_user_receive",
 			"Total number of bytes received by user",
-			[]string{"vdom", "name", "auth", "gw", "create"}, nil,
+			[]string{"vdom", "name", "auth", "gw", "create", "date"}, nil,
 		)
 		user_transmitted = prometheus.NewDesc(
 			"fortigate_ipsec_user_transmitted",
 			"Total number of bytes transmitted by user",
-			[]string{"vdom", "name", "auth", "gw", "create"}, nil,
+			[]string{"vdom", "name", "auth", "gw", "create", "date"}, nil,
 		)
 	)
 
@@ -69,12 +70,14 @@ func probeVPNIPSec(c http.FortiHTTP, meta *TargetMetadata) ([]prometheus.Metric,
 	}
 
 	m := []prometheus.Metric{}
+	currentTime := time.Now()
 	for _, v := range res {
+
 		for _, i := range v.Results {
 
 			if i.Wizard == "dialup-forticlient" && i.Auth != "" {
-				m = append(m, prometheus.MustNewConstMetric(user_received, prometheus.CounterValue, i.Incoming, v.VDOM, i.Name, i.Auth, i.Gw, strconv.Itoa(i.Create)))
-				m = append(m, prometheus.MustNewConstMetric(user_transmitted, prometheus.CounterValue, i.Outgoing, v.VDOM, i.Name, i.Auth, i.Gw, strconv.Itoa(i.Create)))
+				m = append(m, prometheus.MustNewConstMetric(user_received, prometheus.CounterValue, i.Incoming, v.VDOM, i.Name, i.Auth, i.Gw, strconv.Itoa(i.Create), currentTime.Format("2006-01-02") ))
+				m = append(m, prometheus.MustNewConstMetric(user_transmitted, prometheus.CounterValue, i.Outgoing, v.VDOM, i.Name, i.Auth, i.Gw, strconv.Itoa(i.Create), currentTime.Format("2006-01-02")))
 			}
 
 			/*
